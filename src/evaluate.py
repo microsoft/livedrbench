@@ -14,7 +14,7 @@ class LiveDRBenchEval():
         self.rows = livedrbench.to_list()
         
         self.judge_name = judge_name
-        self.num_threads = num_threads
+        self.num_threads = 1 if os.environ.get('debug', '0') == '1' else num_threads
         
         self.all_preds = {}
         with open(preds_file, 'r') as f:
@@ -26,6 +26,8 @@ class LiveDRBenchEval():
     def verify_types(self, row: dict, preds: List[List[dict | str] | dict]) -> None:
         key = row['key']
         category = row.get("category", "")
+        if preds is None:
+            return # Nothing to verify
         ground_truths = json.loads(decrypt(row.get("ground_truths", ""), row.get("canary", "")))
         
         assert len(ground_truths) == len(preds), f"Ground truths and predictions not the same length for key {key}: {len(ground_truths)} vs {len(preds)}"
@@ -55,6 +57,15 @@ class LiveDRBenchEval():
     def grade_row(self, row: dict, preds: List[List[dict | str] | dict]) -> dict:
         key = row['key']
         category = row.get("category", "")
+        if preds is None:
+            return {
+                'key': key,
+                'category': category,
+                'precision': 0.0,
+                'recall': 0.0,
+                'f1': 0.0
+            }
+        
         ground_truths = json.loads(decrypt(row.get("ground_truths", ""), row.get("canary", "")))
         eval_info = json.loads(decrypt(row.get("misc", ""), row.get("canary", "")))['eval_info']
         
@@ -121,7 +132,7 @@ class LiveDRBenchEval():
         jobs = []
         for row in self.rows:
             key = row['key']
-            preds = self.all_preds[key]['preds']
+            preds = self.all_preds.get(key, {}).get('preds', None)
             self.verify_types(row, preds)
             jobs.append({'row': row, 'preds': preds})
         all_grade_results = map_with_progress(self.grade_row, jobs, num_threads=self.num_threads, pbar=True)
@@ -147,7 +158,7 @@ if __name__ == "__main__":
     args.add_argument("--debug", action='store_true', help="Enable debug mode, without multithreading")
     args = args.parse_args()
     
-    os.environ['OPENAI_API_KEY'] = args.openai_model_name
+    os.environ['OPENAI_API_KEY'] = args.openai_api_key
     
     if args.debug:
         print("Running in debug mode")

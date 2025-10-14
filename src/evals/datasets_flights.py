@@ -89,17 +89,6 @@ def find_and_remove_dict(dict_to_remove, list_of_dicts, primary_keys):
             return list_of_dicts[:i] + list_of_dicts[i+1:]
     return list_of_dicts
 
-def evaluate_dict_item(client, judge_name, key, gt_value, pred_value):
-    prompt = prompts['dict_item'].format(key=key, gt_value=json.dumps(gt_value), pred_value=json.dumps(pred_value))
-    response = client.chat.completions.create(
-        model=judge_name,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=1,
-        temperature=0.0
-    )
-    eval_output = int(response.choices[0].message.content.strip())
-    return eval_output
-    
 @retry_on_exception(max_retries=5, delay=1)
 def evaluate_dict(client, judge_name, gt_dict, pred_dict):
     prompt = prompts['dict'].format(dict_gt=json.dumps(gt_dict), dict_pred=json.dumps(pred_dict))

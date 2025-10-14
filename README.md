@@ -19,6 +19,12 @@ A detailed discussion of LiveDRBench, including how it was developed and tested,
 
 ## Usage
 
+First, install the required dependencies:
+
+```bash
+pip install datasets openai tqdm 
+```
+
 To use LiveDRBench's questions, you can load the benchmark using the Hugging Face `datasets` library:
 
 ```python
@@ -42,7 +48,7 @@ To evaluate predictions on LiveDRBench, provide a predictions file with the foll
 Then, run the evaluation script with an OpenAI API key. This script will compute **precision**, **recall**, and **F1** scores for each benchmark category.
 
 ```bash
-python src/evaluation.py \
+python src/evaluate.py \
   --openai_api_key YOUR_API_KEY \
   --preds_file path/to/your/predictions.json \
   [--openai_model_name gpt-4o] \
