@@ -98,15 +98,15 @@ def parse_output(output):
 
 def grade(judge_name: str, key: str, ground_truths: List[List[dict]], preds: List[List[dict]], eval_info: dict | None) -> dict:
     client = OpenAI()
-    
+    assert len(preds) == 1
     # compute metrics
     if "material" in ground_truths[0][0].keys():
-        m_precision, m_recall, m_f1 = compute_metrics(ground_truths[0], preds, key="material", client=client, judge_name=judge_name)
-        p_precision, p_recall, p_f1 = compute_metrics(ground_truths[0], preds, key="paper_title", client=client, judge_name=judge_name)
+        m_precision, m_recall, m_f1 = compute_metrics(ground_truths[0], preds[0], key="material", client=client, judge_name=judge_name)
+        p_precision, p_recall, p_f1 = compute_metrics(ground_truths[0], preds[0], key="paper_title", client=client, judge_name=judge_name)
         
         return {"precision": m_precision*p_precision, "recall": m_recall*p_recall, "f1": m_f1*p_f1}
         
     else:
-        precision, recall, f1 = compute_metrics(ground_truths[0], preds, key="paper_title", client=client, judge_name=judge_name)
+        precision, recall, f1 = compute_metrics(ground_truths[0], preds[0], key="paper_title", client=client, judge_name=judge_name)
 
         return {"precision": precision, "recall": recall, "f1": f1}
